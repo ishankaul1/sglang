@@ -357,8 +357,9 @@ class Envs:
     SGLANG_LOG_SCHEDULER_STATUS_TARGET = EnvStr("")
     SGLANG_LOG_SCHEDULER_STATUS_INTERVAL = EnvFloat(60.0)
     # Leave prompt and output token ids, sampling params and grammar out of
-    # Req.__repr__, so a logged or raised Req carries no request data, and
-    # refuse to start with options that log or dump request data.
+    # Req.__repr__, so a logged or raised Req carries no request data. Also
+    # refuse startup options and /configure_logging changes that would log or
+    # dump request data.
     SGLANG_REDACT_REQUEST_DATA = EnvBool(False)
     # Read by JIT kernel headers (sgl_kernel/logging.h): DEBUG | INFO | WARNING | ERROR.
     SGLANG_JIT_LOG_LEVEL = EnvStr("WARNING")

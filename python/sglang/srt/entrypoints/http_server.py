@@ -1679,8 +1679,35 @@ async def configure_logging(
     obj: Annotated[ConfigureLoggingReq, Body()], request: Request
 ):
     """Configure the request logging options."""
+    if envs.SGLANG_REDACT_REQUEST_DATA.get():
+        blocked = _request_data_logging_fields(obj)
+        if blocked:
+            return ORJSONResponse(
+                content={
+                    "error": {
+                        "message": "SGLANG_REDACT_REQUEST_DATA is set, so "
+                        f"/configure_logging cannot set {', '.join(blocked)}."
+                    }
+                },
+                status_code=HTTPStatus.FORBIDDEN,
+            )
     _global_state.tokenizer_manager.configure_logging(obj)
     return Response(status_code=200)
+
+
+def _request_data_logging_fields(obj: ConfigureLoggingReq) -> List[str]:
+    """Return the fields of `obj` that would write request data to logs or
+    dump files. An empty folder turns dumping off, so it is allowed."""
+    blocked = []
+    if obj.log_requests:
+        blocked.append("log_requests")
+    if obj.dump_requests_folder:
+        blocked.append("dump_requests_folder")
+    if obj.crash_dump_folder:
+        blocked.append("crash_dump_folder")
+    if obj.log_level is not None and obj.log_level.lower() == "debug":
+        blocked.append("log_level=debug")
+    return blocked
 
 
 @app.post("/abort_request")
